@@ -63,6 +63,7 @@ covr:::trace_calls(fun4)
 coverage.  Why is no filename displayed after the `Coverage:` line?
 
 ```{r}
+library(covr)
 cov <- function_coverage(fun1)
 cov
 ```
