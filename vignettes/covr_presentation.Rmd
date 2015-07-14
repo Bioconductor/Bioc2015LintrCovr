@@ -1,0 +1,186 @@
+---
+title: "Covr"
+author: Jim Hester
+date: July 20, 2015
+output:
+   ioslides_presentation:
+     widescreen: true
+---
+
+# Background #
+## What is it? #
+
+  - Test Coverage tool
+  - Mid-December 2014
+  - Coverage
+    - R Code
+    - Compiled C/C++/Fortran Code
+
+## Motivation ##
+
+  - Know what tests to add
+  - Gauge of package robustness
+  - Other languages coverage tools
+    - [gcov](https://gcc.gnu.org/onlinedocs/gcc/Gcov.html)
+    - [JCov](https://wiki.openjdk.java.net/display/CodeTools/jcov)
+    - [coverage](https://pypi.python.org/pypi/coverage)
+    - [simplecov](https://rubygems.org/gems/simplecov)
+  - Services
+    - [coveralls.io](https://coveralls.io/)
+    - [codecov.io](https://codecov.io/)
+
+## Existing Alternatives ##
+
+  - [R-coverage](http://r2d2.quartzbio.com/posts/r-coverage-docker.html) by Karl Forner
+    - Modify R source and add instrumentation
+    - Requires patching and recompiling R source
+  - [testCoverage](https://github.com/MangoTheCat/testCoverage) by Tom Taverner, Chris Campbell, Suchen Jin were the two
+    - Alternate parser
+    - Complicated implementation
+    - No S4 support
+    - Limited output formats
+    - Not simple to call
+
+## Demo ##
+
+  - R terminal
+  - Shiny Application
+  - Coveralls.io
+  - Codecov.io
+
+## Configuration ##
+
+  - Exclusions
+    - whole files
+    - line
+    - ranges
+    - In-source and outside
+
+# Implementation #
+## Abstract Syntax Tree ##
+
+  - How it works vignette
+  - Walk the Abstract Syntax Tree
+    - If a call with srcref
+      - Add a trace function
+      - Perform the call
+
+----
+
+```{r eval = FALSE}
+modify_lang <- function(x, f, ...) {
+  recurse <- function(y) {
+    ## if (!is.null(names(y))) names(y) <- f2(names(y))
+    lapply(y, modify_lang, f = f, ...)
+  }
+
+  if (is.atomic(x) || is.name(x)) {
+    ## Leaf
+    f(x, ...)
+  } else if (is.call(x)) {
+    as.call(recurse(x))
+  } else if (is.function(x)) {
+    formals(x) <- modify_lang(formals(x), f, ...)
+    body(x) <- modify_lang(body(x), f, ...)
+    x
+  } else if (is.pairlist(x)) {
+    ## Formal argument lists (when creating functions)
+    as.pairlist(recurse(x))
+  } else if (is.expression(x)) {
+    ## shouldn't occur inside tree, but might be useful top-level
+    as.expression(recurse(x))
+  } else if (is.list(x)) {
+    ## shouldn't occur inside tree, but might be useful top-level
+    recurse(x)
+  } else {
+    stop("Unknown language class: ", paste(class(x), collapse = "/"),
+      call. = FALSE)
+  }
+}
+```
+
+## Modify Calls ##
+
+  - insert function without changing output?
+  - Braces evaluate expressions, return last
+
+```{r}
+identical({ 1 + 2; 3 + 4 }, `{`(1 + 2, 3 + 4))
+```
+
+```{r, eval = FALSE}
+`{`(count(), as.call(recurse(x)))
+```
+
+## Source References ##
+
+  - Where in source a call is from?
+  - srcref
+    - `option(keep.source = TRUE)`
+    - srcref attribute attached to each call
+
+## Replacing functions ##
+
+  - Replace all references with modified
+  - `testthat::with_mock()`
+    - C function replaces function pointer
+    - retains original definition
+
+## S4 Methods ##
+
+  - Normal functions defined directly in package namespace
+  - S4 methods are defined in an environment based on their generic
+
+```{r eval = FALSE}
+replacements_S4 <- function(env) {
+  generics <- getGenerics(env)
+
+  unlist(recursive = FALSE,
+    Map(generics@.Data, generics@package, USE.NAMES = FALSE,
+      f = function(name, package) {
+      what <- methodsPackageMetaName("T", paste(name, package, sep = ":"))
+
+      table <- get(what, envir = env)
+
+      lapply(ls(table, all.names = TRUE), replacement, env = table)
+    })
+  )
+}
+```
+
+## Compiled Code ##
+
+  - Gcov
+    - built into gcc and clang
+      - `-fprofile-arcs -ftest-coverage`
+      - `-O0`
+    - Need to override default and package makevars
+      - `PKG_CFLAGS` puts optimization _before_ default `-O2`
+    - Temporarily Modify `~/R/Makevars`
+    - No results until process terminated
+      - Call R subprocess
+
+## Running Tests ##
+
+  - `testthat::source_dir()`
+
+```{r, eval = F}
+lapply(dir("tests"), sys.source, envir=new.env(parent=emptyenv()))
+```
+## Sending Results ##
+
+  - Track coverage over time
+  - Report on coverage drops from contributions.
+    - Codecov.io
+    - Coveralls.io
+
+  - Expect a JSON file
+    - coverage per line
+    - source code per line
+  - Travis CI
+    - Travis Job ID
+
+## Future ##
+
+  - Functions defined at run-time
+  - if/else parsing

@@ -1,0 +1,137 @@
+---
+title: "Lintr"
+author: Jim Hester
+date: July 20, 2015
+output:
+  slidy_presentation:
+    incremental: true
+---
+
+# Motivation
+
+  - Other Languages
+    - [flake8](https://pypi.python.org/pypi/pyflakes)
+    - [pylint](http://en.wikipedia.org/wiki/Pylint)
+    - [PerlTidy](http://en.wikipedia.org/wiki/PerlTidy)
+    - [jshint](http://jshint.org/docs/)
+    - [clang](http://clang.llvm.org/)
+    - [lint](http://www.unix.com/man-page/FreeBSD/1/lint)
+
+  - On The Fly
+    - Vim - [Syntastic](https://github.com/scrooloose/syntastic)
+    - Emacs - [flycheck](https://github.com/flycheck/flycheck)
+    - Sublime Text - [SublimeLinter](http://www.sublimelinter.com/)
+
+  - Style
+    - Own/others contributions
+    - Hadley style (<http://r-pkgs.had.co.nz/style.html>)
+
+  - Synergy
+    - Use case for [rex](https://github.com/kevinushey/rex)
+
+
+# Existing Alternatives
+
+  - [lint](https://github.com/halpo/lint) - *Andrew Redd*
+    - Stagnated development, Feb 5, 2013
+    - Slow performance?
+    - Limited set of linters
+
+  - [svTools](http://cran.r-project.org/web/packages/svTools/index.html) - *Philippe Grosjean, Romain Francois*
+    - Major development 2010, last bugfix release Mar 2014
+    - many features un-related to linting
+    - linting implementation wraps codetools functions
+
+  - [codetools](http://cran.r-project.org/web/packages/codetools/index.html) - *Luke Tierney*
+    - Used internally by R CMD check
+    - Checks for possible usage errors, not style
+
+  - [shinyapps](https://github.com/rstudio/shinyapps/issues/103) - *Kevin Ushey*
+    - Shiny app website only
+
+
+# Demo #
+  - R terminal
+  - Vim
+  - Emacs
+  - Sublime Text
+  - RStudio
+  - Travis-CI
+    - lintr-bot
+
+# Configuration #
+  - Some linters have arguments
+    - `line_length_linter(120)`
+  - Arguments to lint function
+  - per project configuration file
+  - Exclusions
+    - whole files
+    - line
+    - ranges
+    - In-source and outside
+  - camelCase vs snake_case vs ambiguous.case
+
+# Implementation #
+  - `base::parse()`
+    - Parse errors -> errors
+  - `utils::getParseData()`
+
+```{r}
+sf <- srcfile("bad.R")
+p <- try(parse(text=readLines(sf$filename),
+               srcfile=sf,
+               keep.source = TRUE))
+(pd <- getParseData(sf))
+```
+
+# Example linter #
+```r
+assignment_linter <- function(source_file) {
+  lapply(ids_with_token(source_file, "EQ_ASSIGN"),
+    function(id) {
+      parsed <- source_file$parsed_content[id, ]
+      Lint(
+        filename = source_file$filename,
+        line_number = parsed$line1,
+        column_number = parsed$col1,
+        type = "style",
+        message = "Use <-, not =, for assignment.",
+        line = source_file$lines[parsed$line1]
+        )
+    })
+}
+```
+
+# Implementation #
+
+  - linting speed an issue
+    - 10X too slow IMHO
+    - ~ 20 seconds to lint lintr, 60 files
+  - Caching
+    - Per expression
+    - Dependencies still buggy
+
+# Future Directions #
+
+  - Bioconductor linters
+    - Very close to hadley style
+    - camelCase
+    - no spaces in arguments (a=b)
+  - Lint R code in knitr/Sweave docs
+    - Rmd
+    - Rnw
+  - Improve Performance
+    - C/C++ helper utility functions?
+  - Robustness linters (@hadley)
+    - require() / library() inside functions
+    - don't change global state permanently, (`setwd(), options(), par()`) ect.
+  - Automatic reformatting/tidying ([formatR](http://cran.r-project.org/web/packages/formatR/index.html))
+    - False positives
+
+# Lintr #
+
+  - Integrated with common editors
+  - Style, syntax and potential usage errors
+  - Easy to understand output
+  - Configurable
+  - Useful???
