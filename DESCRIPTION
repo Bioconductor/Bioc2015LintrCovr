@@ -1,8 +1,8 @@
 Package: Bioc2015LintrCovr
-Title: Slides and excersises for Bioc2015 Developer Day presentation on Covr and Lintr.
+Title: Slides and Exercises for Bioc2015 Developer Day Presentation on Covr and Lintr.
 Version: 0.0.0.9000
 Authors@R: person("Jim", "Hester", email = "james.f.hester@gmail.com", role = c("aut", "cre"))
-Description: Slides and excersises for Bioc2015 Developer Day presentation on Covr and Lintr.
+Description: Slides and Exercises for Bioc2015 Developer Day Presentation on Covr and Lintr.
 Depends: R (>= 3.2.0)
 Imports: lintr, covr, devtools
 License: MIT + file LICENSE
