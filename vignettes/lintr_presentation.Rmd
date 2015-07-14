@@ -3,8 +3,12 @@ title: "Lintr"
 author: Jim Hester
 date: July 20, 2015
 output:
-  slidy_presentation:
-    incremental: true
+  ioslides_presentation:
+    widescreen: true
+vignette: >
+  %\VignetteIndexEntry{Covr Exercises}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 # Motivation

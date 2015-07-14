@@ -15,7 +15,7 @@ fun1 <- function(x) {
   x + 1
 }
 
-covr:::trace_calls(fun)
+covr:::trace_calls(fun1)
 ```
 
 2. What happens when you call `trace_calls()` on a function with a conditional?
