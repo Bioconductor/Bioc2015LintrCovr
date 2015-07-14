@@ -77,7 +77,7 @@ as.data.frame(cov)
 ```
 
 You can also use `shine()` to start a shiny app to browse the results.
-```{r}
+```{r, eval = F}
 shine(cov)
 ```
 
