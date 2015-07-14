@@ -1,0 +1,158 @@
+---
+title: "Covr Exercises"
+author: "Jim Hester"
+date: "`r Sys.Date()`"
+output: BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{Covr Exercises}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+1. See how covr modifies the function calls to track coverage using `trace_calls()` on the function definition.
+```{r}
+fun1 <- function(x) {
+  x + 1
+}
+
+covr:::trace_calls(fun)
+```
+
+2. What happens when you call `trace_calls()` on a function with a conditional?
+```{r}
+fun2 <- function(x) {
+  if (x > 5) {
+    x + 2
+  } else {
+    x
+  }
+}
+
+covr:::trace_calls(fun2)
+```
+
+3. What happens if that conditional does not use braces?  Why do you think this is?
+```{r}
+fun3 <- function(x) {
+  if (x > 5)
+    x + 2
+  else
+    x
+}
+
+covr:::trace_calls(fun3)
+```
+
+(Anyone interested in the in-progress fix for this see
+[jimhester/covr#39](https://github.com/jimhester/covr/issues/39) and
+[jimhester/covr@if_else](https://github.com/jimhester/covr/tree/if_else),
+Suggestions welcome!).
+
+4. What about functions that produce functions (closures)?
+```{r}
+fun4 <- function(x) {
+  function(y) {
+    x + y
+  }
+}
+
+covr:::trace_calls(fun4)
+```
+
+5. Now lets try running `function_coverage()` to actually report on the
+coverage.  Why is no filename displayed after the `Coverage:` line?
+
+```{r}
+cov <- function_coverage(fun1)
+cov
+```
+
+Grouping by function rather than file makes more sense in this context.  It is
+also useful to coerce the result into a `data.frame`.  Why is our coverage 0?
+```{r}
+print(cov, group = "function")
+
+as.data.frame(cov)
+```
+
+You can also use `shine()` to start a shiny app to browse the results.
+```{r}
+shine(cov)
+```
+
+6. You can run any number of test commands as additional arguments.
+```{r}
+cov <- function_coverage(fun1, fun1(1))
+
+as.data.frame(cov)
+print(cov, group = "function")
+```
+
+7. Try doing a few more calls and verify the coverage value responds correctly.
+```{r}
+cov <- function_coverage(fun1, fun1(1), fun1(10))
+
+as.data.frame(cov)
+print(cov, group = "function")
+```
+
+8. What happens with a conditional? How about `fun3()`, which does not have braces.
+```{r}
+# true condition if x is less than 5
+cov <- function_coverage(fun2, fun2(1))
+as.data.frame(cov)
+
+cov <- function_coverage(fun2, fun2(6))
+as.data.frame(cov)
+
+cov <- function_coverage(fun2, fun2(1), fun2(6))
+as.data.frame(cov)
+```
+
+9. `package_coverage()` can be used to automatically run tests for a package.  Test using your package of choice (Examples use the new SummarizedExperiment package)
+```{r, eval = F}
+# In shell clone the code from the Bioconductor-mirrors
+# git clone https://github.com/Bioconductor-mirror/SummarizedExperiment.git
+setwd("~/SummarizedExperiment")
+
+# then you need to install the package to make sure all of the dependencies are installed
+BiocInstaller::biocLite("SummarizedExperiment")
+
+# default runs the tests for the package
+cov <- package_coverage()
+```
+
+Like before default print method prints per file
+```{r, eval = FALSE}
+cov
+```
+
+But you can also print per function
+```{r, eval = FALSE}
+print(cov, group = "function")
+```
+
+Or output a `data.frame`
+```{r, eval = FALSE}
+as.data.frame(cov)
+```
+
+`shine()` is more useful for browsing package coverage.
+```{r, eval = FALSE}
+shine(cov)
+```
+
+10. If your package does not have tests, covr can still be useful to show
+vignette or example coverage. e.g. `type = "example"`
+```{r, eval = FALSE}
+cov <- package_coverage(type = "example")
+```
+
+11. You can run all of test, example and vignette coverage using `type =
+"all"`.  In this case `shine()` provides a toggle button to switch between the
+three types of coverage.
+```{r, eval = FALSE}
+cov <- package_coverage(type = "all")
+
+shine(cov)
+```
