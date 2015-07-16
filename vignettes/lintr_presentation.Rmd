@@ -11,7 +11,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-# Motivation
+## Motivation
 
   - Other Languages
     - [flake8](https://pypi.python.org/pypi/pyflakes)
@@ -34,7 +34,7 @@ vignette: >
     - Use case for [rex](https://github.com/kevinushey/rex)
 
 
-# Existing Alternatives
+## Existing Alternatives
 
   - [lint](https://github.com/halpo/lint) - *Andrew Redd*
     - Stagnated development, Feb 5, 2013
@@ -54,16 +54,15 @@ vignette: >
     - Shiny app website only
 
 
-# Demo #
+## Demo #
   - R terminal
   - Vim
   - Emacs
   - Sublime Text
   - RStudio
   - Travis-CI
-    - lintr-bot
 
-# Configuration #
+## Configuration #
   - Some linters have arguments
     - `line_length_linter(120)`
   - Arguments to lint function
@@ -75,7 +74,7 @@ vignette: >
     - In-source and outside
   - camelCase vs snake_case vs ambiguous.case
 
-# Implementation #
+## Implementation #
   - `base::parse()`
     - Parse errors -> errors
   - `utils::getParseData()`
@@ -88,7 +87,7 @@ p <- try(parse(text=readLines(sf$filename),
 (pd <- getParseData(sf))
 ```
 
-# Example linter #
+## Example linter #
 ```r
 assignment_linter <- function(source_file) {
   lapply(ids_with_token(source_file, "EQ_ASSIGN"),
@@ -106,36 +105,29 @@ assignment_linter <- function(source_file) {
 }
 ```
 
-# Implementation #
+## Implementation #
 
   - linting speed an issue
-    - 10X too slow IMHO
     - ~ 20 seconds to lint lintr, 60 files
   - Caching
     - Per expression
-    - Dependencies still buggy
+    - Cache dependencies still a work in progress
 
-# Future Directions #
+## Future Directions #
 
   - Bioconductor linters
     - Very close to hadley style
     - camelCase
-    - no spaces in arguments (a=b)
-  - Lint R code in knitr/Sweave docs
-    - Rmd
-    - Rnw
+    - no spaces in argument lists (a=b)
   - Improve Performance
     - C/C++ helper utility functions?
-  - Robustness linters (@hadley)
-    - require() / library() inside functions
-    - don't change global state permanently, (`setwd(), options(), par()`) ect.
   - Automatic reformatting/tidying ([formatR](http://cran.r-project.org/web/packages/formatR/index.html))
     - False positives
 
-# Lintr #
+## Lintr #
 
   - Integrated with common editors
+  - Works with both packages and scripts
   - Style, syntax and potential usage errors
   - Easy to understand output
   - Configurable
-  - Useful???

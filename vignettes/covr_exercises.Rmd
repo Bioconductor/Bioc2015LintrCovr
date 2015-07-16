@@ -1,8 +1,10 @@
 ---
 title: "Covr Exercises"
 author: "Jim Hester"
-date: "`r Sys.Date()`"
-output: BiocStyle::html_document
+date: "July 20, 2015"
+output: 
+  BiocStyle::html_document:
+    number_sections: false
 vignette: >
   %\VignetteIndexEntry{Covr Exercises}
   %\VignetteEngine{knitr::rmarkdown}
